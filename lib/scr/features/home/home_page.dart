@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:aka_project/scr/common/constants/app_colors.dart';
-import 'package:aka_project/scr/features/details/detail_bloc/detail_bloc.dart';
+import 'package:aka_project/scr/common/routes/app_routes.dart';
 import 'package:aka_project/scr/features/home/widgets/top_widgets.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -11,7 +11,10 @@ import 'package:geolocator/geolocator.dart';
 import 'package:yandex_mapkit/yandex_mapkit.dart';
 
 import 'bloc/home_bloc.dart';
-import 'widgets/customBottomSheet.dart';
+import 'widgets/custom_map.dart';
+import 'widgets/custom_shimmer.dart';
+import 'widgets/save_location_button.dart';
+import 'widgets/user_location.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -70,13 +73,11 @@ class _HomePageState extends State<HomePage> {
         return Future.error('Location permission are denied');
       }
     }
-
     if (permission == LocationPermission.deniedForever) {
       return Future.error(
         'Location permission are permanently deied, we cannot request permission',
       );
     }
-
     return await Geolocator.getCurrentPosition();
   }
 
@@ -97,7 +98,7 @@ class _HomePageState extends State<HomePage> {
                     decoration: BoxDecoration(
                       color: AppColors.white,
                       borderRadius: BorderRadius.all(
-                        Radius.circular(10.r),
+                        Radius.circular(12.r),
                       ),
                     ),
                     child: SizedBox(
@@ -118,117 +119,14 @@ class _HomePageState extends State<HomePage> {
                                     bottomLeft: Radius.circular(12.r),
                                     bottomRight: Radius.circular(12.r),
                                   ),
-                                  child: YandexMap(
-                                    onMapCreated: (controller) {
-                                      yandexController.complete(controller);
-                                    },
-                                    onCameraPositionChanged: (cameraPosition,
-                                        reason,
-                                        finished,) {
-                                      if (!finished) {
-                                        homeBloc.add(const HomeEvent.gesture());
-                                      } else {
-                                        homeBloc.add(
-                                          HomeEvent.getCitiName(
-                                            cameraPosition.target,
-                                          ),
-                                        );
-                                      }
-                                    },
+                                  child: CustomMap(
+                                    yandexController: yandexController,
+                                    homeBloc: homeBloc,
                                   ),
                                 ),
-                                BlocBuilder<HomeBloc, HomeState>(
-                                  bloc: homeBloc,
-                                  builder: (context, state) =>
-                                      state.maybeMap(
-                                        orElse: () => const SizedBox.shrink(),
-                                        gesture: (value) =>
-                                            ShaderMask(
-                                              shaderCallback: (Rect bounds) {
-                                                return const LinearGradient(
-                                                  colors: [
-                                                    Colors.black26,
-                                                    Colors.black26,
-                                                  ],
-                                                  tileMode: TileMode.clamp,
-                                                ).createShader(bounds);
-                                              },
-                                              blendMode: BlendMode.darken,
-                                              child: const SizedBox.expand(
-                                                child: ColoredBox(
-                                                  color: Colors.black26,
-                                                ),
-                                              ),
-                                            ),
-                                      ),
-                                ),
+                                Shimmer(homeBloc: homeBloc),
                                 Center(
-                                  child: BlocBuilder<HomeBloc, HomeState>(
-                                    bloc: homeBloc,
-                                    builder: (context, state) =>
-                                        Transform.translate(
-                                          offset: const Offset(-5, -34),
-                                          child: Column(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              ClipRRect(
-                                                borderRadius: BorderRadius.all(
-                                                  Radius.circular(5.r),
-                                                ),
-                                                child: ColoredBox(
-                                                  color: Colors.black26,
-                                                  child: Padding(
-                                                    padding: EdgeInsets.all(
-                                                        6.r),
-                                                    child: AnimatedContainer(
-                                                      duration: const Duration(
-                                                        milliseconds: 200,
-                                                      ),
-                                                      width: state.maybeMap(
-                                                        orElse: () => 40.w,
-                                                        gesture: (value) =>
-                                                        35.w,
-                                                      ),
-                                                      height: state.maybeMap(
-                                                        orElse: () => 30.h,
-                                                        gesture: (value) =>
-                                                        35.w,
-                                                      ),
-                                                      decoration: BoxDecoration(
-                                                        borderRadius:
-                                                        BorderRadius.all(
-                                                          Radius.circular(8.r),
-                                                        ),
-                                                        color: Colors.orange,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ),
-                                              ),
-                                              AnimatedContainer(
-                                                duration: const Duration(
-                                                    milliseconds: 100),
-                                                width: 3.w,
-                                                height: state.maybeMap(
-                                                  orElse: () => 15.h,
-                                                  gesture: (value) => 25.h,
-                                                ),
-                                                child: const ColoredBox(
-                                                  color: Colors.black26,
-                                                ),
-                                              ),
-                                              Container(
-                                                height: 12.h,
-                                                width: 10.w,
-                                                decoration: const BoxDecoration(
-                                                  color: Colors.black,
-                                                  shape: BoxShape.circle,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                  ),
+                                  child: UserLocation(homeBloc: homeBloc),
                                 ),
                                 Positioned(
                                   right: 5.r,
@@ -245,38 +143,7 @@ class _HomePageState extends State<HomePage> {
                                 Positioned(
                                   right: 10.r,
                                   top: 10.r,
-                                  child: OutlinedButton(
-                                    style: ElevatedButton.styleFrom(
-                                      fixedSize: Size(50.r, 50.r),
-                                      shape: const CircleBorder(),
-                                      backgroundColor: Colors.orange,
-                                      padding: const EdgeInsets.all(0),
-                                    ),
-                                    child: Builder(builder: (context) {
-                                      return Icon(
-                                        Icons.add,
-                                        color: AppColors.white,
-                                        size: 30.r,
-                                      );
-                                    }),
-                                    onPressed: () {
-                                      homeBloc.state.maybeMap(
-                                       orElse: () => null,
-                                       success: (value) => showModalBottomSheet(
-                                         context: context,
-                                         builder: (BuildContext context) {
-                                           return CustomBottomSheet(
-                                             initialText: value.location.name,
-                                             onTap: () {
-                                               context.read<DetailBloc>().add(DetailEvent.saveLocation(value.location));
-                                               Navigator.pop(context);
-                                             },
-                                           );
-                                         },
-                                       ),
-                                      );
-                                    },
-                                  ),
+                                  child: SaveLocationButton(homeBloc: homeBloc),
                                 ),
                               ],
                             ),
@@ -290,7 +157,16 @@ class _HomePageState extends State<HomePage> {
                   style: ElevatedButton.styleFrom(
                     fixedSize: Size(.9.sw, 50.h),
                   ),
-                  onPressed: () {},
+                  onPressed: () {
+                    homeBloc.state.maybeMap(
+                      orElse: () => null,
+                      success: (value) => Navigator.pushNamed(
+                        context,
+                        arguments: value.location,
+                        AppRoutes.direction,
+                      ),
+                    );
+                  },
                   child: const Text("Davom etish"),
                 ),
               ],
@@ -299,5 +175,3 @@ class _HomePageState extends State<HomePage> {
     );
   }
 }
-
-

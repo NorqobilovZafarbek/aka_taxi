@@ -21,8 +21,8 @@ class LocationRepository extends ICitiesRepository {
   static final dio =Dio(
     BaseOptions(
       baseUrl: ApiConst.baseUrl,
-      connectTimeout: const Duration(seconds: 10),
-      receiveTimeout: const Duration(seconds: 10),
+      connectTimeout: const Duration(seconds: 20),
+      receiveTimeout: const Duration(seconds: 20),
       responseType: ResponseType.json,
     ),
   );

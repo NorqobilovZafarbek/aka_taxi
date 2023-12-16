@@ -1,8 +1,10 @@
 
-import 'package:aka_project/scr/common/widgets/app.dart';
 import 'package:aka_project/scr/features/details/details_page.dart';
 import 'package:aka_project/scr/features/home/home_page.dart';
 import 'package:flutter/cupertino.dart';
+
+import '../../features/contolPage/control_page.dart';
+import '../../features/direction/direction.dart';
 
 abstract final class AppRoutes {
   static const String control = "/";
@@ -15,6 +17,6 @@ abstract final class AppRoutes {
     control: (context) => const ControlPage(),
     home: (context) => const HomePage(),
     details: (context) => const DetailsPage(),
-    direction: (context) => const HomePage(),
+    direction: (context) => const Direction(),
   };
 }
