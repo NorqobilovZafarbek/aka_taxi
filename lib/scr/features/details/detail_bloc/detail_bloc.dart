@@ -25,13 +25,12 @@ class DetailBloc extends Bloc<DetailEvent, DetailState> {
   }
 
   void _getLocation(Emitter<DetailState> emit) {
-    items = _locationBox.values.toList();
-    emit(DetailState.success(items));
+    emit(DetailState.success(_locationBox.values.toList()));
   }
 
   void _saveLocation(Emitter<DetailState> emit, _SaveLocationEvent value) {
-    items.add(value.locationModel);
-    _locationBox.addAll(items);
+    _locationBox.add(value.locationModel);
+    emit(DetailState.success(items));
     _getLocation(emit);
   }
 
